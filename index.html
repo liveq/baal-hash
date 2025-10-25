@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="MD5, SHA-1, SHA-256, SHA-512 해시 생성기. 텍스트 및 파일 해시 생성, 해시 검증 및 비교 지원">
+    <meta name="keywords" content="해시 생성, MD5 생성, SHA256 생성, Hash Generator, 파일 해시, 해시 검증, Checksum, 파일 무결성">
+    <meta name="author" content="BAAL">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://hash.baal.co.kr/">
+    <meta property="og:title" content="해시 생성기 - BAAL">
+    <meta property="og:description" content="MD5, SHA-1, SHA-256, SHA-512 해시 생성기. 텍스트 및 파일 해시 생성, 해시 검증 및 비교 지원">
+    <meta property="og:image" content="https://hash.baal.co.kr/og-image.png">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://hash.baal.co.kr/">
+    <meta property="twitter:title" content="해시 생성기 - BAAL">
+    <meta property="twitter:description" content="MD5, SHA-1, SHA-256, SHA-512 해시 생성기. 텍스트 및 파일 해시 생성, 해시 검증 및 비교 지원">
+    <meta property="twitter:image" content="https://hash.baal.co.kr/og-image.png">
+
+    <title>해시 생성기 - BAAL</title>
+
+    <!-- Google AdSense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2886185075996969"
+     crossorigin="anonymous"></script>
+
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XXXXXXXXXX');
+    </script>
+
+    <!-- CryptoJS for MD5 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.2.0/crypto-js.min.js"></script>
+
+    <!-- 공통 스타일 -->
+    <link rel="stylesheet" href="../_common/common.css">
+    <style>
+        .mode-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        .mode-tab {
+            flex: 1;
+            padding: 15px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .mode-tab:hover,
+        .mode-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+
+        .mode-content {
+            display: none;
+        }
+
+        .mode-content.active {
+            display: block;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 15px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+
+        .algorithms-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .algorithm-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 0;
+        }
+
+        .algorithm-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .algorithm-item label {
+            cursor: pointer;
+            font-weight: 500;
+        }
+
+        .algorithm-item .algo-info {
+            margin-left: auto;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            padding: 12px 24px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            margin-right: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .dropzone {
+            border: 3px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 60px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 20px;
+        }
+
+        .dropzone:hover,
+        .dropzone.dragover {
+            border-color: var(--primary-color);
+            background: var(--bg-secondary);
+        }
+
+        .file-info {
+            background: var(--bg-secondary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .file-info.active {
+            display: block;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-secondary);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 10px 0;
+            display: none;
+        }
+
+        .progress-bar.active {
+            display: block;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--primary-color);
+            width: 0%;
+            transition: width 0.3s;
+        }
+
+        .results-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .hash-result {
+            background: var(--bg-primary);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .hash-result h4 {
+            margin: 0 0 10px 0;
+            color: var(--primary-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .hash-result .hash-value {
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+            padding: 10px;
+            background: var(--bg-secondary);
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .hash-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .copy-btn,
+        .case-btn {
+            padding: 8px 16px;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover,
+        .case-btn:hover {
+            opacity: 0.8;
+        }
+
+        .verify-section {
+            background: var(--bg-secondary);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .verify-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-family: 'Courier New', monospace;
+            margin: 10px 0;
+        }
+
+        .verify-result {
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-weight: 600;
+            display: none;
+        }
+
+        .verify-result.success {
+            background: rgba(34, 197, 94, 0.1);
+            color: #22c55e;
+            display: block;
+        }
+
+        .verify-result.fail {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            display: block;
+        }
+
+        @media (max-width: 768px) {
+            .mode-tabs {
+                flex-direction: column;
+            }
+
+            .hash-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- 다크모드 토글 -->
+    <div class="theme-toggle">
+        <button id="themeToggle" aria-label="다크모드 전환">
+            <span class="icon-light">☀️</span>
+            <span class="icon-dark">🌙</span>
+        </button>
+    </div>
+
+    <!-- 언어 전환 -->
+    <div class="lang-toggle">
+        <button id="langToggle" data-lang="ko">
+            <span class="lang-ko">EN</span>
+            <span class="lang-en">KO</span>
+        </button>
+    </div>
+
+    <!-- 도구 버튼 -->
+    <div class="tools-toggle">
+        <button id="toolsToggle" data-ko="더 많은 도구" data-en="More Tools">
+            🧰
+        </button>
+    </div>
+
+    <!-- 메인 컨테이너 -->
+    <div class="container">
+        <header>
+            <h1 data-ko="해시 생성기" data-en="Hash Generator">해시 생성기</h1>
+            <p class="subtitle" data-ko="파일과 텍스트의 해시값을 생성하세요" data-en="Generate hash values for files and text">파일과 텍스트의 해시값을 생성하세요</p>
+        </header>
+
+        <main>
+            <!-- 모드 선택 -->
+            <div class="mode-tabs">
+                <div class="mode-tab active" data-mode="text" data-ko="텍스트" data-en="Text">텍스트</div>
+                <div class="mode-tab" data-mode="file" data-ko="파일" data-en="File">파일</div>
+            </div>
+
+            <!-- 알고리즘 선택 -->
+            <div class="algorithms-section">
+                <h3 data-ko="해시 알고리즘 선택" data-en="Select Hash Algorithms">해시 알고리즘 선택</h3>
+                <div class="algorithm-item">
+                    <input type="checkbox" id="algoMD5" checked>
+                    <label for="algoMD5">MD5</label>
+                    <span class="algo-info">128bit (32 <span data-ko="자" data-en="chars">자</span>)</span>
+                </div>
+                <div class="algorithm-item">
+                    <input type="checkbox" id="algoSHA1" checked>
+                    <label for="algoSHA1">SHA-1</label>
+                    <span class="algo-info">160bit (40 <span data-ko="자" data-en="chars">자</span>)</span>
+                </div>
+                <div class="algorithm-item">
+                    <input type="checkbox" id="algoSHA256" checked>
+                    <label for="algoSHA256">SHA-256</label>
+                    <span class="algo-info">256bit (64 <span data-ko="자" data-en="chars">자</span>) - <span data-ko="추천" data-en="Recommended">추천</span></span>
+                </div>
+                <div class="algorithm-item">
+                    <input type="checkbox" id="algoSHA384">
+                    <label for="algoSHA384">SHA-384</label>
+                    <span class="algo-info">384bit (96 <span data-ko="자" data-en="chars">자</span>)</span>
+                </div>
+                <div class="algorithm-item">
+                    <input type="checkbox" id="algoSHA512">
+                    <label for="algoSHA512">SHA-512</label>
+                    <span class="algo-info">512bit (128 <span data-ko="자" data-en="chars">자</span>)</span>
+                </div>
+            </div>
+
+            <!-- 텍스트 모드 -->
+            <div class="mode-content active" id="textMode">
+                <label data-ko="텍스트 입력:" data-en="Text Input:">텍스트 입력:</label>
+                <textarea id="textInput" placeholder="Hello World!">Hello World!</textarea>
+                <button class="btn" onclick="generateTextHash()" data-ko="해시 생성" data-en="Generate Hash">해시 생성</button>
+            </div>
+
+            <!-- 파일 모드 -->
+            <div class="mode-content" id="fileMode">
+                <div class="dropzone" id="dropzone">
+                    <p data-ko="📤 파일을 드래그하거나 클릭하여 업로드" data-en="📤 Drag & drop file or click to upload">📤 파일을 드래그하거나 클릭하여 업로드</p>
+                    <input type="file" id="fileInput" style="display: none;">
+                </div>
+                <div class="file-info" id="fileInfo"></div>
+                <div class="progress-bar" id="progressBar">
+                    <div class="progress-bar-fill" id="progressBarFill"></div>
+                </div>
+            </div>
+
+            <!-- 결과 -->
+            <div class="results-section" id="resultsSection" style="display: none;">
+                <h3 data-ko="해시 결과" data-en="Hash Results">해시 결과</h3>
+                <div id="hashResults"></div>
+            </div>
+
+            <!-- 해시 검증 -->
+            <div class="verify-section">
+                <h3 data-ko="해시 검증" data-en="Verify Hash">해시 검증</h3>
+                <p data-ko="검증할 해시값을 입력하세요 (선택사항):" data-en="Enter hash to verify (optional):">검증할 해시값을 입력하세요 (선택사항):</p>
+                <input type="text" class="verify-input" id="verifyInput" placeholder="a591a6d40bf420404a011733cfb7b190d62c65bf0bcda32b57b277d9ad9f146e">
+                <button class="btn" onclick="verifyHash()" data-ko="검증" data-en="Verify">검증</button>
+                <div class="verify-result" id="verifyResult"></div>
+            </div>
+        </main>
+
+        <footer>
+            <div class="footer-content">
+                <p class="footer-brand">
+                    Made by <a href="https://baal.co.kr" target="_blank">BAAL</a>
+                </p>
+                <p class="footer-contact">
+                    <a href="mailto:baal.contract@gmail.com">baal.contract@gmail.com</a>
+                </p>
+                <p class="footer-links">
+                    <a href="https://baal.co.kr/privacy" target="_blank" data-ko="개인정보처리방침" data-en="Privacy Policy">개인정보처리방침</a>
+                    <span class="separator">|</span>
+                    <a href="https://baal.co.kr/terms" target="_blank" data-ko="이용약관" data-en="Terms of Service">이용약관</a>
+                </p>
+                <p class="footer-copyright">&copy; 2025 BAAL. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- 공통 스크립트 -->
+    <script src="../_common/common.js"></script>
+    <script>
+        const MAX_FILE_SIZE = 100 * 1024 * 1024; // 100MB
+        let currentFile = null;
+        let generatedHashes = {};
+
+        // Mode switching
+        document.querySelectorAll('.mode-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const mode = tab.dataset.mode;
+                document.querySelectorAll('.mode-tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.mode-content').forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(mode + 'Mode').classList.add('active');
+            });
+        });
+
+        // File handling
+        const dropzone = document.getElementById('dropzone');
+        const fileInput = document.getElementById('fileInput');
+
+        dropzone.addEventListener('click', () => fileInput.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+
+        dropzone.addEventListener('dragleave', () => {
+            dropzone.classList.remove('dragover');
+        });
+
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFile(files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            if (file.size > MAX_FILE_SIZE) {
+                const lang = document.body.getAttribute('data-lang') || 'ko';
+                alert((lang === 'ko' ? '파일이 너무 큽니다' : 'File is too large') + ` (max 100MB, current ${(file.size / 1024 / 1024).toFixed(2)}MB)`);
+                return;
+            }
+
+            currentFile = file;
+            const fileInfo = document.getElementById('fileInfo');
+            fileInfo.innerHTML = `<strong>${file.name}</strong> (${(file.size / 1024 / 1024).toFixed(2)}MB)`;
+            fileInfo.classList.add('active');
+
+            generateFileHash();
+        }
+
+        // Hash generation for text
+        async function generateTextHash() {
+            const text = document.getElementById('textInput').value;
+            if (!text) {
+                const lang = document.body.getAttribute('data-lang') || 'ko';
+                alert(lang === 'ko' ? '텍스트를 입력하세요' : 'Enter text');
+                return;
+            }
+
+            generatedHashes = {};
+            const algorithms = getSelectedAlgorithms();
+
+            for (const algo of algorithms) {
+                if (algo === 'MD5') {
+                    generatedHashes[algo] = CryptoJS.MD5(text).toString();
+                } else if (algo === 'SHA-1') {
+                    generatedHashes[algo] = CryptoJS.SHA1(text).toString();
+                } else if (algo === 'SHA-256') {
+                    generatedHashes[algo] = CryptoJS.SHA256(text).toString();
+                } else if (algo === 'SHA-384') {
+                    generatedHashes[algo] = CryptoJS.SHA384(text).toString();
+                } else if (algo === 'SHA-512') {
+                    generatedHashes[algo] = CryptoJS.SHA512(text).toString();
+                }
+            }
+
+            displayResults();
+        }
+
+        // Hash generation for file
+        async function generateFileHash() {
+            if (!currentFile) return;
+
+            generatedHashes = {};
+            const algorithms = getSelectedAlgorithms();
+
+            const progressBar = document.getElementById('progressBar');
+            const progressBarFill = document.getElementById('progressBarFill');
+            progressBar.classList.add('active');
+
+            const reader = new FileReader();
+
+            reader.onprogress = (e) => {
+                if (e.lengthComputable) {
+                    const progress = Math.round((e.loaded / e.total) * 100);
+                    progressBarFill.style.width = `${progress}%`;
+                }
+            };
+
+            reader.onload = async (e) => {
+                const arrayBuffer = e.target.result;
+                const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
+
+                for (const algo of algorithms) {
+                    if (algo === 'MD5') {
+                        generatedHashes[algo] = CryptoJS.MD5(wordArray).toString();
+                    } else if (algo === 'SHA-1') {
+                        generatedHashes[algo] = CryptoJS.SHA1(wordArray).toString();
+                    } else if (algo === 'SHA-256') {
+                        generatedHashes[algo] = CryptoJS.SHA256(wordArray).toString();
+                    } else if (algo === 'SHA-384') {
+                        generatedHashes[algo] = CryptoJS.SHA384(wordArray).toString();
+                    } else if (algo === 'SHA-512') {
+                        generatedHashes[algo] = CryptoJS.SHA512(wordArray).toString();
+                    }
+                }
+
+                progressBar.classList.remove('active');
+                progressBarFill.style.width = '0%';
+                displayResults();
+            };
+
+            reader.onerror = () => {
+                const lang = document.body.getAttribute('data-lang') || 'ko';
+                alert(lang === 'ko' ? '파일 읽기 실패' : 'Failed to read file');
+                progressBar.classList.remove('active');
+            };
+
+            reader.readAsArrayBuffer(currentFile);
+        }
+
+        // Get selected algorithms
+        function getSelectedAlgorithms() {
+            const algorithms = [];
+            if (document.getElementById('algoMD5').checked) algorithms.push('MD5');
+            if (document.getElementById('algoSHA1').checked) algorithms.push('SHA-1');
+            if (document.getElementById('algoSHA256').checked) algorithms.push('SHA-256');
+            if (document.getElementById('algoSHA384').checked) algorithms.push('SHA-384');
+            if (document.getElementById('algoSHA512').checked) algorithms.push('SHA-512');
+            return algorithms;
+        }
+
+        // Display results
+        function displayResults() {
+            const resultsSection = document.getElementById('resultsSection');
+            const hashResults = document.getElementById('hashResults');
+            const lang = document.body.getAttribute('data-lang') || 'ko';
+
+            resultsSection.style.display = 'block';
+            hashResults.innerHTML = Object.entries(generatedHashes).map(([algo, hash]) => `
+                <div class="hash-result">
+                    <h4>
+                        ${algo}
+                        <span style="font-size: 0.9em; font-weight: normal; color: var(--text-secondary);">${hash.length} ${lang === 'ko' ? '자' : 'chars'}</span>
+                    </h4>
+                    <div class="hash-value" id="hash-${algo}">${hash}</div>
+                    <div class="hash-actions">
+                        <button class="copy-btn" onclick="copyHash('${algo}')" data-ko="복사" data-en="Copy">${lang === 'ko' ? '복사' : 'Copy'}</button>
+                        <button class="case-btn" onclick="toggleCase('${algo}')" data-ko="대문자로" data-en="Uppercase">${lang === 'ko' ? '대문자로' : 'Uppercase'}</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Copy hash
+        function copyHash(algo) {
+            const hashEl = document.getElementById(`hash-${algo}`);
+            const textArea = document.createElement('textarea');
+            textArea.value = hashEl.textContent;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+
+            const lang = document.body.getAttribute('data-lang') || 'ko';
+            alert(lang === 'ko' ? '복사되었습니다!' : 'Copied!');
+        }
+
+        // Toggle case
+        function toggleCase(algo) {
+            const hashEl = document.getElementById(`hash-${algo}`);
+            const currentHash = hashEl.textContent;
+            const isUpperCase = currentHash === currentHash.toUpperCase();
+            hashEl.textContent = isUpperCase ? currentHash.toLowerCase() : currentHash.toUpperCase();
+
+            const btn = event.target;
+            const lang = document.body.getAttribute('data-lang') || 'ko';
+            btn.textContent = isUpperCase ? (lang === 'ko' ? '대문자로' : 'Uppercase') : (lang === 'ko' ? '소문자로' : 'Lowercase');
+        }
+
+        // Verify hash
+        function verifyHash() {
+            const verifyInput = document.getElementById('verifyInput').value.trim().toLowerCase();
+            const verifyResult = document.getElementById('verifyResult');
+            const lang = document.body.getAttribute('data-lang') || 'ko';
+
+            if (!verifyInput) {
+                alert(lang === 'ko' ? '검증할 해시를 입력하세요' : 'Enter hash to verify');
+                return;
+            }
+
+            if (Object.keys(generatedHashes).length === 0) {
+                alert(lang === 'ko' ? '먼저 해시를 생성하세요' : 'Generate hash first');
+                return;
+            }
+
+            const matches = Object.entries(generatedHashes).filter(([algo, hash]) =>
+                hash.toLowerCase() === verifyInput
+            );
+
+            if (matches.length > 0) {
+                verifyResult.className = 'verify-result success';
+                verifyResult.textContent = `✓ ${lang === 'ko' ? '해시가 일치합니다!' : 'Hash matches!'} (${matches[0][0]})`;
+            } else {
+                verifyResult.className = 'verify-result fail';
+                verifyResult.textContent = `✗ ${lang === 'ko' ? '해시가 일치하지 않습니다' : 'Hash does not match'}`;
+            }
+        }
+
+        // Initialize
+        generateTextHash();
+    </script>
+</body>
+</html>
