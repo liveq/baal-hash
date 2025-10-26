@@ -321,6 +321,14 @@ body[data-lang="en"] .lang-ko {
     opacity: 1;
 }
 
+/* 도구 버튼 툴팁 위치 (왼쪽에 표시) */
+.tools-toggle .tooltip {
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    margin-right: 10px;
+}
+
 /* 푸터 링크 툴팁 */
 .footer-brand a {
     position: relative;
